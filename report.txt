@@ -1,0 +1,12 @@
+
+Podcast Ad Optimization Report
+-----------------------------
+Total Revenue: ₹1350.00
+Time Used: 125.00
+Unused Time: 0.00
+
+Selected Ads:
+Ad ID  Time Taken  Revenue Earned  Fraction
+ AD04          50           550.0  1.000000
+ AD08          55           600.0  1.000000
+ AD01          20           200.0  0.666667
