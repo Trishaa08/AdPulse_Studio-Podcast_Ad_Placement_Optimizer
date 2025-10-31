@@ -5,14 +5,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from io import BytesIO
 
-# -------------------------
-# Page config
-# -------------------------
+
 st.set_page_config(page_title="AdPulse Studio", layout="wide", page_icon="🎧")
 
-# -------------------------
-# Global matplotlib styling (micro charts)
-# -------------------------
+
 plt.rcParams.update({
     "font.size": 7,
     "axes.titlesize": 9,
@@ -22,9 +18,7 @@ plt.rcParams.update({
     "legend.fontsize": 7
 })
 
-# -------------------------
-# Dark CSS + neon visuals + inline SVG logo
-# -------------------------
+
 st.markdown(
     """
     <style>
@@ -92,7 +86,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Inline SVG logo (no external hosting)
 svg_logo = """
 <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" width="96" height="96">
   <defs>
@@ -113,7 +106,7 @@ svg_logo = """
 </svg>
 """
 
-# Header with logo and slogan
+
 st.markdown(
     f"""
     <div class="header-card">
@@ -134,9 +127,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# -------------------------
-# CSV upload + sample
-# -------------------------
+
 st.markdown('<div style="display:flex; gap:12px; align-items:center;">', unsafe_allow_html=True)
 st.subheader("Upload Ad Dataset (CSV)")
 sample_csv = """ad_id,duration,revenue
@@ -160,33 +151,30 @@ if not uploaded:
     st.info("Upload a CSV to run optimization (or download sample CSV).")
     st.stop()
 
-# Load DF and validate
 df = pd.read_csv(uploaded)
 if not {"ad_id", "duration", "revenue"}.issubset(set(df.columns)):
     st.error("CSV must contain columns: ad_id,duration,revenue")
     st.stop()
 
-# ensure numeric
+
 df["duration"] = df["duration"].astype(float)
 df["revenue"] = df["revenue"].astype(float)
 df["rps"] = df["revenue"] / df["duration"]
 
-# show data
+
 st.markdown('<div class="graph-card">', unsafe_allow_html=True)
 st.write("### Uploaded Data")
 st.dataframe(df, use_container_width=True)
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Controls
+
 c1, c2 = st.columns([2,1])
 with c1:
     total_time = st.number_input("Total available ad time (seconds)", min_value=1, value=120, step=1)
 with c2:
     run = st.button("Run Optimization ▶")
 
-# -------------------------
-# Algorithms
-# -------------------------
+
 def greedy_fractional(df_in, max_time):
     temp = df_in.sort_values("rps", ascending=False).reset_index(drop=True)
     sel = []
@@ -234,7 +222,7 @@ def dp_knapsack(df_in, max_time):
     chosen.reverse()
     return total_rev, chosen
 
-# Run and show results + 4 micro graphs (2x2)
+
 if run:
     with st.spinner("Optimizing..."):
         g_rev, g_used, g_sel = greedy_fractional(df, total_time)
@@ -243,7 +231,6 @@ if run:
     greedy_df = pd.DataFrame(g_sel, columns=["ad_id", "time_taken", "rev_taken", "fraction"])
     dp_df = df[df["ad_id"].isin(d_sel)].copy() if d_sel else pd.DataFrame(columns=df.columns)
 
-    # summary cards
     st.markdown('<div class="graph-card" style="display:flex; gap:10px;">', unsafe_allow_html=True)
     colA, colB, colC = st.columns(3)
     colA.metric("Greedy Revenue", f"₹{g_rev:.2f}")
@@ -251,13 +238,12 @@ if run:
     colC.metric("Greedy Time Used", f"{int(g_used)} sec")
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # 2x2 micro graphs
+   
     row1c1, row1c2 = st.columns(2)
     row2c1, row2c2 = st.columns(2)
 
     theme_colors = ["#c7b3ff", "#bfe9ff", "#bbf7d0", "#a78bfa", "#7dd3fc"]
 
-    # 1) Pie chart (micro)
     with row1c1:
         st.markdown('<div class="graph-card">', unsafe_allow_html=True)
         st.markdown('<div class="graph-title">🥧 Ad Time Usage (Greedy)</div>', unsafe_allow_html=True)
@@ -273,7 +259,6 @@ if run:
             st.info("No greedy selection to show")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # 2) Bar chart (micro)
     with row1c2:
         st.markdown('<div class="graph-card">', unsafe_allow_html=True)
         st.markdown('<div class="graph-title">📊 Revenue per Ad</div>', unsafe_allow_html=True)
@@ -286,7 +271,7 @@ if run:
         plt.close(fig2)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # 3) Greedy vs DP (micro)
+   
     with row2c1:
         st.markdown('<div class="graph-card">', unsafe_allow_html=True)
         st.markdown('<div class="graph-title">⚔️ Greedy vs DP — Total Revenue</div>', unsafe_allow_html=True)
@@ -298,7 +283,7 @@ if run:
         plt.close(fig3)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # 4) Cumulative (micro)
+   
     with row2c2:
         st.markdown('<div class="graph-card">', unsafe_allow_html=True)
         st.markdown('<div class="graph-title">📈 Cumulative Revenue (Greedy)</div>', unsafe_allow_html=True)
@@ -317,7 +302,7 @@ if run:
             st.info("No greedy cumulative data")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # Selected tables and downloads
+   
     st.markdown('<div class="graph-card">', unsafe_allow_html=True)
     two1, two2 = st.columns(2)
     with two1:
@@ -333,7 +318,7 @@ if run:
         else:
             st.info("No DP selection.")
 
-    # Downloads
+ 
     st.markdown("---")
     report = []
     report.append("AdPulse Studio — Optimization Report")
@@ -351,6 +336,7 @@ if run:
     if len(greedy_df) > 0:
         st.download_button("Download Selected Ads (.csv)", data=greedy_df.to_csv(index=False), file_name="selected_ads.csv")
 
-# Footer
+
 st.markdown('<div style="height:10px"></div>', unsafe_allow_html=True)
 st.caption("AdPulse Studio • Feel the Beat of Your Revenue • Built with care ❤️")
+
